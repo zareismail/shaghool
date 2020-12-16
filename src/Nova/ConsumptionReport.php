@@ -101,9 +101,9 @@ class ConsumptionReport extends Resource
                 ->required()
                 ->rules('required'), 
 
-            DateTime::make(__('Report Date'), 'report_date')
-                ->required()
-                ->rules('required'), 
+            // DateTime::make(__('Report Date'), 'report_date')
+            //     ->required()
+            //     ->rules('required'), 
     	];
     }
     /**

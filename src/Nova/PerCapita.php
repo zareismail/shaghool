@@ -111,9 +111,9 @@ class PerCapita extends Resource
                 ->rules('required')
                 ->default(0), 
 
-            DateTime::make(__('Start Date'), 'start_date')
-                ->required()
-                ->rules('required'),  
+            // DateTime::make(__('Start Date'), 'start_date')
+            //     ->required()
+            //     ->rules('required'),  
 
             HasMany::make(__('Consumption Reports'), 'reports', ConsumptionReport::class),
     	];
