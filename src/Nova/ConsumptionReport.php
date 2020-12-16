@@ -44,58 +44,51 @@ class ConsumptionReport extends Resource
                 ->withoutTrashed() 
                 ->searchable()
                 ->debounce(100)
-                ->readonly(! is_null($capita = $this->capita ?: $request->findParentModel() ))
+                ->readonly(! is_null($capita = $this->capita ?: $request->findParentModel()))
                 ->default($this->auth_id ?? $capita->auth_id ?? $request->user()->id)
                 ->canSee(function($request) {
                     return $request->user()->can('update', static::newModel());
                 }), 
 
-            // $this->mergeWhen(! $request->isUpdateOrUpdateAttachedRequest() && $capita, function() use ($capita) {
-            //     return [ 
-            //         Integer::make(__('Installment Amount'), 'value')
-            //             ->required()
-            //             ->rules('required')
-            //             ->readonly()
-            //             ->hideFromIndex()
-            //             ->withMeta([
-            //                 'value' => $capita->amount
-            //             ]), 
+            $this->mergeWhen(! $request->isUpdateOrUpdateAttachedRequest() && $capita, function() use ($capita) {
+                return [ 
+                    Number::make(__('Balance'), 'value')
+                        ->required()
+                        ->rules('required')
+                        ->readonly()
+                        ->hideFromIndex()
+                        ->withMeta([
+                            'value' => $capita->balance
+                        ]), 
 
-            //         Number::make(__('Reports Total'), 'amount')
-            //             ->required()
-            //             ->rules('required')
-            //             ->readonly()
-            //             ->withMeta([
-            //                 'value' => ($sum = $capita->maturities->where('id', '<=', $this->id ?? $capita->maturities->max('id'))->sum('amount'))
-            //             ]),  
+                    Number::make(__('Consumption Total'), 'value')
+                        ->required()
+                        ->rules('required')
+                        ->readonly()
+                        ->withMeta([
+                            'value' => ($sum = $capita->reports->where('id', '<=', $this->id ?? $capita->reports->max('id'))->sum('value'))
+                        ]),  
 
-            //         Number::make(__('Current installment'), 'installment')
-            //             ->required()
-            //             ->rules('required')
-            //             ->readonly()
-            //             ->onlyOnForms()
-            //             ->hideWhenUpdating()
-            //             ->withMeta([
-            //                 'value' => $capita->maturities->count() + ($this->exists ? 0:1)
-            //             ]), 
 
-            //         Number::make(__('Debt until here'), 'amount')
-            //             ->required()
-            //             ->rules('required')
-            //             ->readonly()
-            //             ->withMeta([
-            //                 'value' => ($capita->installments * $capita->amount) - $sum
-            //             ]),  
+                    Number::make(__('Wasted To Now'), 'value')
+                        ->required()
+                        ->rules('required')
+                        ->readonly()
+                        ->withMeta([
+                            'value' => $sum - ($capita->reports->where('id', '<=', $this->id ?? $capita->reports->max('id'))->count() * $capita->balance)
+                        ]),  
 
-            //         Number::make(__('Lacks'), 'amount')
-            //             ->required()
-            //             ->rules('required')
-            //             ->readonly()
-            //             ->withMeta([
-            //                 'value' => $sum - ($capita->maturities->where('id', '<=', $this->id ?? $capita->maturities->max('id'))->count() * $capita->amount)
-            //             ]),  
-            //     ];
-            // }),
+                    Number::make(__('Current Period'), 'duration')
+                        ->required()
+                        ->rules('required')
+                        ->readonly()
+                        ->onlyOnForms()
+                        ->hideWhenUpdating()
+                        ->withMeta([
+                            'value' => $capita->reports->count() + ($this->exists ? 0:1)
+                        ]),    
+                ];
+            }),
 
             Number::make(__('Consumption Value'), 'value')
                 ->required()
