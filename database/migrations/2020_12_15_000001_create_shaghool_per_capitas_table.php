@@ -22,7 +22,7 @@ class CreateShaghoolPerCapitasTable extends Migration
             $table->enum('period', array_keys(Helper::periods()))->default(Helper::MONTHLY);
             $table->tinyInteger('due')->default(1);  
             $table->tinyInteger('duration')->default(1);  
-            $table->timestamp('start_date')->nullable();
+            // $table->timestamp('start_date')->nullable();
             $table->integer('balance')->default(0); 
             $table->details();
             $table->timestamps();
