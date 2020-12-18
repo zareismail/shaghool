@@ -8,7 +8,7 @@
     "license": "MIT",
     "require": {
         "php": ">=7.1.0",
-        "zareismail/nova-cascade": "~0.1",
+        "zareismail/nova-cascade": "~0.2",
         "zareismail/keil": "~0.1"
     },
     "autoload": {
