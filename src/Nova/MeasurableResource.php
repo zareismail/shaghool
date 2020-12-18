@@ -3,7 +3,8 @@
 namespace Zareismail\Shaghool\Nova; 
 
 use Illuminate\Http\Request; 
-use Laravel\Nova\Fields\{ID, Text, HasMany}; 
+use Laravel\Nova\Fields\{ID, Text, BelongsTo, HasMany}; 
+use Zareismail\Keil\Nova\MeasuringUnit; 
 
 class MeasurableResource extends Resource
 {  
@@ -24,6 +25,9 @@ class MeasurableResource extends Resource
     {
     	return [
     		ID::make()->sortable(),   
+            
+            BelongsTo::make(__('Measuring Unit'), 'unit', MeasuringUnit::class)
+                ->withoutTrashed(),
 
             Text::make(__('Resource Name'), 'name')
                 ->sortable()
@@ -31,9 +35,21 @@ class MeasurableResource extends Resource
                 ->rules('required'),
 
             Text::make(__('Note'), 'note')
-                ->nullable(), 
+                ->nullable(),
 
             HasMany::make(__('Per Capitas'), 'percapitas', PerCapita::class),
     	];
-    }  
+    }   
+
+    /**
+     * Get the cards available on the entity.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function cards(Request $request)
+    {
+        return [
+        ];
+    }
 }

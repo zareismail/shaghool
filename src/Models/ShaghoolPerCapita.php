@@ -5,16 +5,7 @@ namespace Zareismail\Shaghool\Models;
 use Zareismail\NovaContracts\Models\AuthorizableModel; 
 
 class ShaghoolPerCapita extends AuthorizableModel 
-{   
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array
-     */
-    protected $casts = [
-    	'start_date' => 'datetime',
-    ];
-
+{    
 	/**
 	 * Query the related ShaghoolResource.
 	 * 

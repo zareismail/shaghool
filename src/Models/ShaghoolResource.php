@@ -1,6 +1,6 @@
 <?php
 
-namespace Zareismail\Shaghool\Models;
+namespace Zareismail\Shaghool\Models; 
 
 
 class ShaghoolResource extends Model
@@ -20,5 +20,15 @@ class ShaghoolResource extends Model
 	public function percapitas()
 	{ 
 		return $this->hasMany(ShaghoolPerCapita::class, 'resource_id');
+	}
+
+	/**
+	 * Query the related KeilUnit`s.
+	 * 
+	 * @return  \Illuminate\Database\Eloquent\Relations\BelongsTo     
+	 */
+	public function unit()
+	{ 
+		return $this->belongsTo(\Zareismail\Keil\Models\KeilUnit::class);
 	}
 }

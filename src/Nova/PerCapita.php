@@ -5,11 +5,12 @@ namespace Zareismail\Shaghool\Nova;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Laravel\Nova\Nova; 
-use Laravel\Nova\Fields\{ID, Number, Select, Currency, DateTime, BelongsTo, MorphTo, HasMany}; 
+use Laravel\Nova\Fields\{ID, Number, Select, Currency, DateTime, BelongsTo/*, MorphTo*/, HasMany}; 
 use DmitryBubyakin\NovaMedialibraryField\Fields\Medialibrary;
 use Zareismail\NovaContracts\Nova\User;
 use Armincms\Fields\Chain;  
 use Zareismail\Shaghool\Helper;
+use Zareismail\Fields\MorphTo;
 
 class PerCapita extends Resource
 {  
@@ -38,7 +39,7 @@ class PerCapita extends Resource
     	return [
     		ID::make(), 
 
-            BelongsTo::make(__('Reporter'), 'auth', User::class)
+            BelongsTo::make(__('Reported By'), 'auth', User::class)
                 ->withoutTrashed() 
                 ->searchable()
                 ->debounce(100)
@@ -51,69 +52,61 @@ class PerCapita extends Resource
 
             MorphTo::make(__('Measuring'), 'measurable')
                 ->types(Helper::measurableResources($request)->all())
-                ->withoutTrashed()
-                ->searchable()
-                ->debounce(100), 
+                ->withoutTrashed(), 
 
-            Chain::make('periods', function() {
-                return [ 
-                    Select::make(__('Reporting Period'), 'period')
-                        ->options(Helper::periods())
-                        ->default(Helper::MONTHLY)
-                ];
-            }),
+            Select::make(__('Reporting Period'), 'period')
+                ->options(Helper::periods())
+                ->default(Helper::MONTHLY),
 
-            Chain::with('periods', function($request) {
-                switch ($request->get('period', $this->period)) {
-                    case Helper::DAILY:
-                        return [
-                            Select::make(__('Which Hour'), 'due')
-                                ->options(array_combine(range(1, 24), range(1, 24))),
-                        ];
-                        break;
+            // Chain::make('periods', function() {
+            //     return [ 
+            //         Select::make(__('Reporting Period'), 'period')
+            //             ->options(Helper::periods())
+            //             ->default(Helper::MONTHLY)
+            //     ];
+            // }),
 
-                    case Helper::WEEKLY:
-                        return [
-                            Select::make(__('Which Day'), 'due')
-                                ->options(Helper::getDays())
-                                ->default(Carbon::getWeekStartsAt()),
-                        ];
-                        break;
+            // Chain::with('periods', function($request) {
+            //     switch ($request->get('period', $this->period)) {
+            //         case Helper::DAILY:
+            //             return [
+            //                 Select::make(__('Which Hour'), 'due')
+            //                     ->options(array_combine(range(1, 24), range(1, 24))),
+            //             ];
+            //             break;
 
-                    case Helper::MONTHLY:
-                        return [
-                            Select::make(__('Which Day'), 'due')
-                                ->options(array_combine(range(1, 30), range(1, 30))),
-                        ];
-                        break;
+            //         case Helper::WEEKLY:
+            //             return [
+            //                 Select::make(__('Which Day'), 'due')
+            //                     ->options(Helper::getDays())
+            //                     ->default(Carbon::getWeekStartsAt()),
+            //             ];
+            //             break;
 
-                    case Helper::YEARLY:
-                        return [
-                            Select::make(__('Which Month'), 'due')
-                                ->options(Helper::getMonths()),
-                        ];
-                        break;
+            //         case Helper::MONTHLY:
+            //             return [
+            //                 Select::make(__('Which Day'), 'due')
+            //                     ->options(array_combine(range(1, 30), range(1, 30))),
+            //             ];
+            //             break;
+
+            //         case Helper::YEARLY:
+            //             return [
+            //                 Select::make(__('Which Month'), 'due')
+            //                     ->options(Helper::getMonths()),
+            //             ];
+            //             break;
                     
-                    default:
-                    return [];
-                        break;
-                } 
-            }),
-
-            Number::make(__('Number of reports'), 'duration')
-                ->rules('required')
-                ->required()
-                ->default(1)
-                ->min(1), 
+            //         default:
+            //         return [];
+            //             break;
+            //     } 
+            // }),  
 
             Number::make(__('Balance'), 'balance')
                 ->required()
                 ->rules('required')
-                ->default(0), 
-
-            // DateTime::make(__('Start Date'), 'start_date')
-            //     ->required()
-            //     ->rules('required'),  
+                ->default(0),  
 
             HasMany::make(__('Consumption Reports'), 'reports', ConsumptionReport::class),
     	];

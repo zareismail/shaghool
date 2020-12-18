@@ -12,7 +12,7 @@ class ShaghoolReport extends AuthorizableModel
      * @var array
      */
     protected $casts = [
-    	'report_date' => 'datetime',
+    	'target_date' => 'datetime',
     ];
 
 	/**

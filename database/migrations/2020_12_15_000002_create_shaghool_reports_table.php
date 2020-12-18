@@ -18,8 +18,9 @@ class CreateShaghoolReportsTable extends Migration
             $table->id(); 
             $table->auth();  
             $table->foreignId('percapita_id')->constrained('shaghool_per_capitas');   
-            // $table->timestamp('report_date');
-            $table->integer('value')->default(0); 
+            $table->timestamp('target_date');
+            $table->integer('value')->nullable(); 
+            $table->integer('balance')->default(0); 
             $table->details(); 
             $table->timestamps();
             $table->softDeletes();
