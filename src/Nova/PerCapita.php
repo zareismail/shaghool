@@ -113,15 +113,86 @@ class PerCapita extends Resource
     }
 
     /**
+     * Build an "index" query for the given resource.
+     *
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public static function indexQuery(NovaRequest $request, $query)
+    {
+        return $query->tap(function($query) use ($request) {
+            $measurables = Helper::measurableResources($request)->map(function($resource) {
+                return $resource::$model;
+            });
+
+            $query->with('measurable', function($morphTo) use ($measurables) {
+                return $morphTo->morphWith($measurables->all())->withTrashed();
+            }); 
+
+            $query->with('resource', function($query) {
+                return $query->withTrashed();
+            }); 
+
+            $callback = function($query) use ($request, $measurables) {
+                return $query
+                    ->authenticate()
+                    ->orWhereHasMorph('measurable', $measurables->all(), function($query, $type) { 
+                        if(\Zareismail\NovaPolicy\Helper::isOwnable($type)) {
+                            $query->authenticate();
+                        }
+                    });
+            };
+
+            $query->when($request->user()->cant('create', static::newModel()), $callback); 
+        });
+    }
+
+    /**
      * Get the value that should be displayed to represent the resource.
      *
      * @return string
      */
     public function title()
     {
-        $resource = Nova::resourceForModel($this->measurable);
+        return $this->resourceTitle() .':'. $this->measurableTitle(); 
+    }
 
-        return  (new $resource($this->measurable))->title().': '.
-        (new MeasurableResource($this->resource->resource))->title();
+    /**
+     * Get the resource value that should be displayed to represent the resource.
+     *
+     * @return string
+     */
+    public function resourceTitle()
+    {
+        if(! isset($this->resource->resource)) {
+            return __('Measurable :resource', [
+                'resource' => $this->resource_id
+            ]);
+        }
+
+        return with(new MeasurableResource($this->resource->resource), function($resource) {
+            return $resource->title();
+        }); 
+    }
+
+    /**
+     * Get the measurable value that should be displayed to represent the resource.
+     *
+     * @return string
+     */
+    public function measurableTitle()
+    {  
+        return with(Nova::resourceForModel($this->measurable), function($resource) {
+            if(is_null($resource)) {
+                return __('Measuring :resource', [
+                    'resource' => $this->measurable_type,
+                ]);
+            }
+
+            return with(new $resource($this->measurable), function($resource) {
+                return $resource->title();
+            });  
+        }); 
     }
 }
