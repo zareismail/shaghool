@@ -5,6 +5,7 @@ namespace Zareismail\Shaghool\Nova;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Laravel\Nova\Nova; 
+use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Fields\{ID, Number, Select, Currency, DateTime, BelongsTo/*, MorphTo*/, HasMany}; 
 use DmitryBubyakin\NovaMedialibraryField\Fields\Medialibrary;
 use Zareismail\NovaContracts\Nova\User;
