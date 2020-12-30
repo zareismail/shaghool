@@ -16,6 +16,13 @@ class MeasurableResource extends Resource
     public static $model = \Zareismail\Shaghool\Models\ShaghoolResource::class;
 
     /**
+     * The relationships that should be eager loaded when performing an index query.
+     *
+     * @var array
+     */
+    public static $with = ['unit'];
+
+    /**
      * Get the fields displayed by the resource.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -40,6 +47,16 @@ class MeasurableResource extends Resource
             HasMany::make(__('Per Capitas'), 'percapitas', PerCapita::class),
     	];
     }   
+
+    /**
+     * Get the value that should be displayed to represent the resource.
+     *
+     * @return string
+     */
+    public function title()
+    {
+        return $this->name.' ('.$this->unit->symbol.')';
+    }
 
     /**
      * Get the cards available on the entity.
