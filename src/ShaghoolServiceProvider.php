@@ -43,6 +43,10 @@ class ShaghoolServiceProvider extends ServiceProvider
             Nova\PerCapita::class,
             Nova\ConsumptionReport::class,
         ]);
+
+        LaravelNova::dashboards([
+            Nova\Dashboards\ConsumptionReports::make(), 
+        ]);
     }
 
     /**
