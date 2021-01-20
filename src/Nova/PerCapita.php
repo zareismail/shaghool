@@ -205,4 +205,23 @@ class PerCapita extends Resource
             });  
         }); 
     }
+
+    /**
+     * Apply the search query to the query.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $search
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    protected static function applySearch($query, $search)
+    {
+        return parent::applySearch($query, $search)
+                ->orWhereHasMorph('measurable', Helper::morphs(), function($morphTo, $type) use ($search) {
+                    $resource = Nova::resourceForModel($type);
+
+                    foreach ($resource::searchableColumns() as $column) {
+                        $morphTo->orWhere($morphTo->qualifyColumn($column), 'like', '%'.$search.'%');
+                    } 
+                });
+    }
 }

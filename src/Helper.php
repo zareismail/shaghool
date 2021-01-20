@@ -65,6 +65,19 @@ class Helper
     } 
 
     /**
+     * Return Nova's dmeasurable resources.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Laravel\Nova\ResourceCollection
+     */
+    public static function morphs()
+    {
+        return static::measurableResources(app('request'))->map(function($resource) { 
+            return $resource::$model; 
+        })->all();
+    } 
+
+    /**
      * Get the days of the week.
      *
      * @return array
