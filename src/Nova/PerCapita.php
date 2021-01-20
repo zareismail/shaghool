@@ -30,6 +30,15 @@ class PerCapita extends Resource
     public static $with = ['resource', 'auth'];
 
     /**
+     * The columns that should be searched.
+     *
+     * @var array
+     */
+    public static $search = [
+        'id', 'measurable_type', 'period'
+    ]; 
+
+    /**
      * Get the fields displayed by the resource.
      *
      * @param  \Illuminate\Http\Request  $request

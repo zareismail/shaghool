@@ -27,6 +27,13 @@ class ConsumptionReport extends Resource
     public static $with = ['percapita.resource.unit', 'auth'];
 
     /**
+     * Indicates if the resource should be globally searchable.
+     *
+     * @var bool
+     */
+    public static $globallySearchable = false;
+
+    /**
      * Get the fields displayed by the resource.
      *
      * @param  \Illuminate\Http\Request  $request
