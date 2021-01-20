@@ -15,6 +15,22 @@ class ShaghoolReport extends AuthorizableModel
     	'target_date' => 'datetime',
     ];
 
+    /**
+     * Bootstrap the model and its traits.
+     *
+     * @return void
+     */
+    public static function boot()
+    {
+    	parent::boot();
+
+    	static::saving(function($model) { 
+    		$model->forceFill([
+    			'balance' => optional(ShaghoolPerCapita::find($model->percapita_id))->balance
+    		]);
+    	});
+    }
+
 	/**
 	 * Query the related ShaghoolPerCapita.
 	 * 
