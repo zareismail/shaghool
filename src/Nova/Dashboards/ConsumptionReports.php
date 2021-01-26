@@ -252,8 +252,10 @@ class ConsumptionReports extends Dashboard
                         'label' => __('Consumption'),
                         'borderColor' => '#f7a35c',
                         'data' => collect($this->months())->map(function($month, $key) use ($resource) {
-                            return $resource->percapitas->flatMap->reports->filter(function($report) use ($key) {
-                                return $report->target_date->lte(now()->addMonths($key));
+                            $months = collect($this->months())->slice(0, $key+1);
+
+                            return $resource->percapitas->flatMap->reports->filter(function($report) use ($months) {
+                                return $months->contains($report->target_date->format($this->dateFormat()));
                             })->sum('value');
                         })->all(),
                     ],[
@@ -261,8 +263,10 @@ class ConsumptionReports extends Dashboard
                         'label' => __('Balance'),
                         'borderColor' => '#90ed7d',
                         'data' => collect($this->months())->map(function($month, $key) use ($resource) {
-                            return $resource->percapitas->flatMap->reports->filter(function($report) use ($month) { 
-                                return $report->target_date->format($this->dateFormat()) === $month;
+                            $months = collect($this->months())->slice(0, $key+1);
+
+                            return $resource->percapitas->flatMap->reports->filter(function($report) use ($months) { 
+                                return $months->contains($report->target_date->format($this->dateFormat()));
                             })->sum('balance') * ($key + 1);
                         })->all(),
                     ]))
@@ -286,20 +290,20 @@ class ConsumptionReports extends Dashboard
      */
     public function months()
     {
-        return [
+        return array_reverse([
             now()->format($this->dateFormat()),
-            now()->addMonths(1)->format($this->dateFormat()),
-            now()->addMonths(2)->format($this->dateFormat()),
-            now()->addMonths(3)->format($this->dateFormat()),
-            now()->addMonths(4)->format($this->dateFormat()),
-            now()->addMonths(5)->format($this->dateFormat()),
-            now()->addMonths(6)->format($this->dateFormat()),
-            now()->addMonths(7)->format($this->dateFormat()),
-            now()->addMonths(8)->format($this->dateFormat()),
-            now()->addMonths(9)->format($this->dateFormat()),
-            now()->addMonths(10)->format($this->dateFormat()),
-            now()->addMonths(11)->format($this->dateFormat()),
-        ];
+            now()->subMonths(1)->format($this->dateFormat()),
+            now()->subMonths(2)->format($this->dateFormat()),
+            now()->subMonths(3)->format($this->dateFormat()),
+            now()->subMonths(4)->format($this->dateFormat()),
+            now()->subMonths(5)->format($this->dateFormat()),
+            now()->subMonths(6)->format($this->dateFormat()),
+            now()->subMonths(7)->format($this->dateFormat()),
+            now()->subMonths(8)->format($this->dateFormat()),
+            now()->subMonths(9)->format($this->dateFormat()),
+            now()->subMonths(10)->format($this->dateFormat()),
+            now()->subMonths(11)->format($this->dateFormat()),
+        ]);
     }
 
     /**
