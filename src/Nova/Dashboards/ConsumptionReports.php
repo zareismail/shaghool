@@ -32,9 +32,11 @@ class ConsumptionReports extends Dashboard
         return $this->filter([  
 
             DateTime::make(__('From Date'), 'from_date', function($value) {
-                if(! is_null($value)) {
-                    return \Carbon\Carbon::create($value)->format('Y-m-d H:i:s.u'); 
+                if(is_null($value)) {
+                    $value = (strval(now()->subMonths(11))); 
                 }
+
+                return \Carbon\Carbon::create($value)->format('Y-m-d H:i:s.u'); 
             })  
                 ->nullable()
                 ->help($request->filled('from_date') ? __('Filtered by :date', [
@@ -46,9 +48,11 @@ class ConsumptionReports extends Dashboard
                 ]),
 
             DateTime::make(__('To Date'), 'to_date', function($value) {
-                if(! is_null($value)) {
-                    return \Carbon\Carbon::create($value)->format('Y-m-d H:i:s.u'); 
+                if(is_null($value)) {
+                    $value = strval(now());
                 }
+
+                return \Carbon\Carbon::create($value)->format('Y-m-d H:i:s.u'); 
             })  
                 ->nullable()
                 ->help($request->filled('to_date') ? __('Filtered by :date', [
@@ -233,7 +237,7 @@ class ConsumptionReports extends Dashboard
                     ]))
                     ->options([
                         'xaxis' => [
-                            'categories' => $this->months()
+                            'categories' => $this->categories()
                         ], 
                     ])
                     ->width('full')
@@ -267,12 +271,12 @@ class ConsumptionReports extends Dashboard
 
                             return $resource->percapitas->flatMap->reports->filter(function($report) use ($months) { 
                                 return $months->contains($report->target_date->format($this->dateFormat()));
-                            })->sum('balance') * ($key + 1);
+                            })->sum('balance');
                         })->all(),
                     ]))
                     ->options([
                         'xaxis' => [
-                            'categories' => $this->months()
+                            'categories' => $this->categories()
                         ],
                     ])
                     ->width('full')
@@ -304,6 +308,13 @@ class ConsumptionReports extends Dashboard
             now()->subMonths(10)->format($this->dateFormat()),
             now()->subMonths(11)->format($this->dateFormat()),
         ]);
+    }
+
+    public function categories()
+    {
+        return collect($this->months())->map(function($date) {
+            return now()->format($this->dateFormat()) == $date ? now()->format('Y/M') : $date;
+        })->all();
     }
 
     /**
