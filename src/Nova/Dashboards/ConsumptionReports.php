@@ -10,6 +10,7 @@ use Laravel\Nova\Fields\{Select, DateTime};
 use Laravel\Nova\Nova;
 use Coroowicaksono\ChartJsIntegration\LineChart; 
 use Zareismail\Shaghool\Nova\MeasurableResource; 
+use Zareismail\Shaghool\Nova\PerCapita; 
 use Zareismail\Shaghool\Helper; 
 use Zareismail\Fields\Contracts\Cascade;
 
@@ -172,7 +173,7 @@ class ConsumptionReports extends Dashboard
                 $query
                     ->with([
                         'reports' => function($query) {
-                            $query ->when(request()->filled('from_date'), function($query) {
+                            $query->when(request()->filled('from_date'), function($query) {
                                 $query->where('target_date', '>=', request()->get('from_date'));
                             })
                             ->when(request()->filled('to_date'), function($query) {
@@ -204,10 +205,16 @@ class ConsumptionReports extends Dashboard
                         $query->whereHasMorph(
                             'measurable', [$resource::newModel()->getMorphClass()], $queryCallback
                         ); 
+                    }, function($query) {
+                        PerCapita::indexQuery(app(NovaRequest::class), $query);
                     });
             }
-        ])->get()->flatMap(function($resource) {
-            $balance = $resource->percapitas->sum('balance');
+        ])->get()->flatMap(function($resource) { 
+            $reports = $resource->percapitas->flatMap->reports->groupBy(function($report) {
+                return $report->target_date->startOfMonth()->format($this->dateFormat());
+            })->sort();
+            $consumption = $reports->map->sum('value');
+            $balance = $reports->map->sum('balance');
 
             return [
                 (new LineChart())
@@ -220,24 +227,16 @@ class ConsumptionReports extends Dashboard
                         'barPercentage' => 0.5,
                         'label' => __('Consumption'),
                         'borderColor' => '#f7a35c',
-                        'data' => collect($this->months())->map(function($month) use ($resource) {
-                            return $resource->percapitas->flatMap->reports->filter(function($report) use ($month) { 
-                                return $report->target_date->format($this->dateFormat()) === $month;
-                            })->sum('value');
-                        })->all(),
+                        'data' => $consumption->values(),
                     ],[
                         'barPercentage' => 0.5,
                         'label' => __('Balance'),
                         'borderColor' => '#90ed7d',
-                        'data' => collect($this->months())->map(function($month) use ($resource) {
-                            return $resource->percapitas->flatMap->reports->filter(function($report) use ($month) { 
-                                return $report->target_date->format($this->dateFormat()) === $month;
-                            })->sum('balance');
-                        })->all(),
+                        'data' => $balance->values(),
                     ]))
                     ->options([
                         'xaxis' => [
-                            'categories' => $this->categories()
+                            'categories' => $reports->keys()->all(),
                         ], 
                     ])
                     ->width('full')
@@ -255,28 +254,24 @@ class ConsumptionReports extends Dashboard
                         'barPercentage' => 0.5,
                         'label' => __('Consumption'),
                         'borderColor' => '#f7a35c',
-                        'data' => collect($this->months())->map(function($month, $key) use ($resource) {
-                            $months = collect($this->months())->slice(0, $key+1);
-
-                            return $resource->percapitas->flatMap->reports->filter(function($report) use ($months) {
-                                return $months->contains($report->target_date->format($this->dateFormat()));
-                            })->sum('value');
-                        })->all(),
+                        'data' => $consumption->map(function($value, $date) use ($consumption) {
+                            return $consumption->takeUntil(function($value, $key) use ($date) {
+                                return $date == $key;
+                            })->sum() + $value;
+                        })->values()->all(),
                     ],[
                         'barPercentage' => 0.5,
                         'label' => __('Balance'),
                         'borderColor' => '#90ed7d',
-                        'data' => collect($this->months())->map(function($month, $key) use ($resource) {
-                            $months = collect($this->months())->slice(0, $key+1);
-
-                            return $resource->percapitas->flatMap->reports->filter(function($report) use ($months) { 
-                                return $months->contains($report->target_date->format($this->dateFormat()));
-                            })->sum('balance');
-                        })->all(),
+                        'data' => $balance->map(function($value, $date) use ($balance) {
+                            return $balance->takeUntil(function($value, $key) use ($date) {
+                                return $date == $key;
+                            })->sum() + $value;
+                        })->values()->all(),
                     ]))
                     ->options([
                         'xaxis' => [
-                            'categories' => $this->categories()
+                            'categories' => $reports->keys()->all(),
                         ],
                     ])
                     ->width('full')
@@ -285,37 +280,7 @@ class ConsumptionReports extends Dashboard
                     ]),
             ];
         }); 
-    }
-
-    /**
-     * Returns an array of the year months.
-     * 
-     * @return array
-     */
-    public function months()
-    {
-        return array_reverse([
-            now()->format($this->dateFormat()),
-            now()->subMonths(1)->format($this->dateFormat()),
-            now()->subMonths(2)->format($this->dateFormat()),
-            now()->subMonths(3)->format($this->dateFormat()),
-            now()->subMonths(4)->format($this->dateFormat()),
-            now()->subMonths(5)->format($this->dateFormat()),
-            now()->subMonths(6)->format($this->dateFormat()),
-            now()->subMonths(7)->format($this->dateFormat()),
-            now()->subMonths(8)->format($this->dateFormat()),
-            now()->subMonths(9)->format($this->dateFormat()),
-            now()->subMonths(10)->format($this->dateFormat()),
-            now()->subMonths(11)->format($this->dateFormat()),
-        ]);
-    }
-
-    public function categories()
-    {
-        return collect($this->months())->map(function($date) {
-            return now()->format($this->dateFormat()) == $date ? now()->format('Y/M') : $date;
-        })->all();
-    }
+    }  
 
     /**
      * Returns the month format string.
@@ -324,7 +289,7 @@ class ConsumptionReports extends Dashboard
      */
     public function dateFormat()
     {
-        return 'M';
+        return 'Y/m';
     }
 
     /**
