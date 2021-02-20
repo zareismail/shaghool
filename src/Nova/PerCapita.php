@@ -147,10 +147,8 @@ class PerCapita extends Resource
             $callback = function($query) use ($request, $measurables) {
                 return $query
                     ->authenticate()
-                    ->orWhereHasMorph('measurable', $measurables->all(), function($query, $type) { 
-                        if(\Zareismail\NovaPolicy\Helper::isOwnable($type)) {
-                            $query->authenticate();
-                        }
+                    ->orWhereHasMorph('measurable', $measurables->all(), function($query, $type) use ($request) { 
+                        forward_static_call([Nova::resourceForModel($type), 'indexQuery'], $request, $query);
                     });
             };
 
