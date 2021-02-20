@@ -212,7 +212,7 @@ class ConsumptionReports extends Dashboard
         ])->get()->flatMap(function($resource) { 
             $reports = $resource->percapitas->flatMap->reports->groupBy(function($report) {
                 return $report->target_date->startOfMonth()->format($this->dateFormat());
-            })->sort();
+            })->sortKeys();
             $consumption = $reports->map->sum('value');
             $balance = $reports->map->sum('balance');
 
