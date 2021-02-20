@@ -4,6 +4,7 @@ namespace Zareismail\Shaghool\Nova;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Fields\{ID, Text, Number, Select, Date, BelongsTo, MorphTo, HasOneThrough, HasMany}; 
 use DmitryBubyakin\NovaMedialibraryField\Fields\Medialibrary;
 use Armincms\Fields\{CHain, InputSelect};  
@@ -100,5 +101,23 @@ class ConsumptionReport extends Resource
         return [
             // Metrics\WastagePerResources::make().
         ];
+    }
+
+    /**
+     * Build an "index" query for the given resource.
+     *
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public static function indexQuery(NovaRequest $request, $query)
+    {
+        return parent::indexQuery($request, $query)->tap(function($query) use ($request) {
+            $query->when(static::shouldAuthenticate($request, $query), function($query) use ($request) {
+                $query->orWhereHas('percapita', function($query) use ($request) {
+                    PerCapita::indexQuery($request, $query);
+                });
+            });
+        });
     }
 }
