@@ -225,12 +225,12 @@ class ConsumptionReports extends Dashboard
                     ])
                     ->series(array([
                         'barPercentage' => 0.5,
-                        'label' => __('Consumption'),
+                        'label' => __('Consumption Value'),
                         'borderColor' => '#f7a35c',
                         'data' => $consumption->values(),
                     ],[
                         'barPercentage' => 0.5,
-                        'label' => __('Balance'),
+                        'label' => __('Consumption Target'),
                         'borderColor' => '#90ed7d',
                         'data' => $balance->values(),
                     ]))
@@ -252,7 +252,7 @@ class ConsumptionReports extends Dashboard
                     ])
                     ->series(array([
                         'barPercentage' => 0.5,
-                        'label' => __('Consumption'),
+                        'label' => __('Consumption Value'),
                         'borderColor' => '#f7a35c',
                         'data' => $consumption->map(function($value, $date) use ($consumption) {
                             return $consumption->takeUntil(function($value, $key) use ($date) {
@@ -261,7 +261,7 @@ class ConsumptionReports extends Dashboard
                         })->values()->all(),
                     ],[
                         'barPercentage' => 0.5,
-                        'label' => __('Balance'),
+                        'label' => __('Consumption Target'),
                         'borderColor' => '#90ed7d',
                         'data' => $balance->map(function($value, $date) use ($balance) {
                             return $balance->takeUntil(function($value, $key) use ($date) {
