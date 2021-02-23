@@ -152,10 +152,7 @@ class PerCapita extends Resource
                     });
             };
 
-            $query->when(
-                $request->isCreateOrAttachRequest() && $request->user()->cant('create', static::newModel()),
-                 $callback
-            ); 
+            $query->when(static::shouldAuthenticate($request, $query), $callback); 
         });
     }
 
