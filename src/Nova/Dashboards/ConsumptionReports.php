@@ -4,13 +4,11 @@ namespace Zareismail\Shaghool\Nova\Dashboards;
 
 use Illuminate\Support\Str;
 use Illuminate\Http\Resources\ConditionallyLoadsAttributes;
-use Laravel\Nova\Dashboard;
+use Laravel\Nova\{Nova, Dashboard};
 use Laravel\Nova\Http\Requests\NovaRequest;
-use Laravel\Nova\Fields\{Select, DateTime};
-use Laravel\Nova\Nova;
+use Laravel\Nova\Fields\{Select, DateTime}; 
 use Coroowicaksono\ChartJsIntegration\LineChart; 
-use Zareismail\Shaghool\Nova\MeasurableResource; 
-use Zareismail\Shaghool\Nova\PerCapita; 
+use Zareismail\Shaghool\Nova\{MeasurableResource, PerCapita};  
 use Zareismail\Shaghool\Helper; 
 use Zareismail\Fields\Contracts\Cascade;
 
