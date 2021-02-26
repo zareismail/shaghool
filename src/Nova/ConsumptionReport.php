@@ -126,7 +126,7 @@ class ConsumptionReport extends Resource
                     });
                 })
                 ->with('percapita', function($query) use ($request) {
-                        PerCapita::buildIndexQuery($request, $query);
+                    PerCapita::buildIndexQuery($request, $query);
                 });
     } 
 }
