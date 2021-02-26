@@ -4,7 +4,7 @@ namespace Zareismail\Shaghool\Nova;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Laravel\Nova\Nova; 
+use Laravel\Nova\{Nova, TrashedStatus}; 
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Fields\{ID, Number, Select, Currency, DateTime, BelongsTo/*, MorphTo*/, HasMany}; 
 use DmitryBubyakin\NovaMedialibraryField\Fields\Medialibrary;
@@ -127,32 +127,43 @@ class PerCapita extends Resource
      *
      * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
      * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string|null  $search
+     * @param  array  $filters
+     * @param  array  $orderings
+     * @param  string  $withTrashed
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public static function buildIndexQuery(NovaRequest $request, $query, $search = null,
+                                      array $filters = [], array $orderings = [],
+                                      $withTrashed = TrashedStatus::DEFAULT)
+    {  
+        $queryCallback = function($query) use ($request) {
+            $query->orWhereHasMorph('measurable', Helper::morphs(), function($query, $type) use ($request) { 
+                forward_static_call([Nova::resourceForModel($type), 'indexQuery'], $request, $query);
+            });
+        };
+
+        return parent::buildIndexQuery($request, $query, $search, $filters, $orderings, $withTrashed)
+                ->when(static::shouldAuthenticate($request, $query), $queryCallback);
+    }
+
+    /**
+     * Build an "index" query for the given resource.
+     *
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public static function indexQuery(NovaRequest $request, $query)
     {
-        return $query->tap(function($query) use ($request) {
-            $measurables = Helper::measurableResources($request)->map(function($resource) {
-                return $resource::$model;
-            });
-
-            $query->with('measurable', function($morphTo) use ($measurables) {
-                return $morphTo->morphWith($measurables->all())->withTrashed();
+        return $query->tap(function($query) use ($request) { 
+            $query->with('measurable', function($morphTo) {
+                return $morphTo->morphWith(Helper::morphs())->withTrashed();
             }); 
 
             $query->with('resource', function($query) {
                 return $query->withTrashed();
             }); 
-
-            $callback = function($query) use ($request, $measurables) {
-                return $query
-                    ->authenticate()
-                    ->orWhereHasMorph('measurable', $measurables->all(), function($query, $type) use ($request) { 
-                        forward_static_call([Nova::resourceForModel($type), 'indexQuery'], $request, $query);
-                    });
-            };
-
-            $query->when(static::shouldAuthenticate($request, $query), $callback); 
         });
     }
 
