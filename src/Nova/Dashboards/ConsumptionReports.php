@@ -168,7 +168,12 @@ class ConsumptionReports extends Dashboard
      */
     public function cards()
     { 
+        if(request()->route('dashboard') !== static::uriKey()) {
+            return [];
+        }
+        
         return MeasurableResource::newModel()->with([
+            'unit',
             'percapitas' => function($query) {
                 $query
                     ->with([
@@ -206,7 +211,7 @@ class ConsumptionReports extends Dashboard
                             'measurable', [$resource::newModel()->getMorphClass()], $queryCallback
                         ); 
                     }, function($query) {
-                        PerCapita::indexQuery(app(NovaRequest::class), $query);
+                        PerCapita::buildIndexQuery(app(NovaRequest::class), $query);
                     });
             }
         ])->get()->flatMap(function($resource) { 
