@@ -171,12 +171,11 @@ class ConsumptionReports extends Dashboard
         if(request()->route('dashboard') !== static::uriKey()) {
             return [];
         }
-        
+
         return MeasurableResource::newModel()->with([
             'unit',
             'percapitas' => function($query) {
-                $query
-                    ->with([
+                PerCapita::buildIndexQuery(app(NovaRequest::class), $query)->with([
                         'reports' => function($query) {
                             $query->when(request()->filled('from_date'), function($query) {
                                 $query->where('target_date', '>=', request()->get('from_date'));
