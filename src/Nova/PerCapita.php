@@ -139,7 +139,7 @@ class PerCapita extends Resource
     {  
         $queryCallback = function($query) use ($request) {
             $query->orWhereHasMorph('measurable', Helper::morphs(), function($query, $type) use ($request) { 
-                forward_static_call([Nova::resourceForModel($type), 'indexQuery'], $request, $query);
+                forward_static_call([Nova::resourceForModel($type), 'buildIndexQuery'], $request, $query);
             });
         };
 
