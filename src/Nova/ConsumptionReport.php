@@ -102,31 +102,37 @@ class ConsumptionReport extends Resource
         return [
             // Metrics\WastagePerResources::make().
         ];
-    }
+    } 
 
     /**
      * Build an "index" query for the given resource.
      *
      * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
      * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  string|null  $search
-     * @param  array  $filters
-     * @param  array  $orderings
-     * @param  string  $withTrashed
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public static function buildIndexQuery(NovaRequest $request, $query, $search = null,
-                                      array $filters = [], array $orderings = [],
-                                      $withTrashed = TrashedStatus::DEFAULT)
+    public static function indexQuery(NovaRequest $request, $query)
     {
-        return parent::buildIndexQuery($request, $query, $search, $filters, $orderings, $withTrashed)
-                ->when(static::shouldAuthenticate($request, $query), function($query) use ($request) {
-                    $query->orWhereHas('percapita', function($query) use ($request) {
-                        PerCapita::buildIndexQuery($request, $query);
-                    });
-                })
-                ->with('percapita', function($query) use ($request) {
+        $query->with('percapita', function($query) use ($request) {
+            PerCapita::buildIndexQuery($request, $query);
+        });
+    }
+
+    /**
+     * Authenticate the query for the given request.
+     *
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public static function authenticateQuery(NovaRequest $request, $query)
+    {
+        return $query->where(function($query) use ($request) {
+            $query->when(static::shouldAuthenticate($request, $query), function($query) use ($request) {
+                $query->authenticate()->orWhereHas('percapita', function($query) use ($request) {
                     PerCapita::buildIndexQuery($request, $query);
                 });
-    } 
+            });
+        });
+    }
 }
