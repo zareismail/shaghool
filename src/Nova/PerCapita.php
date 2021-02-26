@@ -27,7 +27,7 @@ class PerCapita extends Resource
      *
      * @var array
      */
-    public static $with = ['resource', 'auth'];
+    public static $with = ['resource.unit', 'auth'];
 
     /**
      * The columns that should be searched.
