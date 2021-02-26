@@ -207,8 +207,6 @@ class ConsumptionReports extends Dashboard
                         $query->whereHasMorph(
                             'measurable', [$resource::newModel()->getMorphClass()], $queryCallback
                         ); 
-                    }, function($query) {
-                        PerCapita::buildIndexQuery(app(NovaRequest::class), $query);
                     });
             }
         ])->get()->flatMap(function($resource) { 
