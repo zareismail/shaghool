@@ -4,6 +4,7 @@ namespace Zareismail\Shaghool\Nova;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Laravel\Nova\TrashedStatus;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Fields\{ID, Text, Number, Select, Date, BelongsTo, MorphTo, HasOneThrough, HasMany}; 
 use DmitryBubyakin\NovaMedialibraryField\Fields\Medialibrary;
@@ -108,16 +109,21 @@ class ConsumptionReport extends Resource
      *
      * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
      * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string|null  $search
+     * @param  array  $filters
+     * @param  array  $orderings
+     * @param  string  $withTrashed
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public static function indexQuery(NovaRequest $request, $query)
+    public static function buildIndexQuery(NovaRequest $request, $query, $search = null,
+                                      array $filters = [], array $orderings = [],
+                                      $withTrashed = TrashedStatus::DEFAULT)
     {
-        return parent::indexQuery($request, $query)->tap(function($query) use ($request) {
-            $query->when(static::shouldAuthenticate($request, $query), function($query) use ($request) {
-                $query->orWhereHas('percapita', function($query) use ($request) {
-                    PerCapita::indexQuery($request, $query);
+        return parent::buildIndexQuery($request, $query, $search, $filters, $orderings, $withTrashed)
+                ->when(static::shouldAuthenticate($request, $query), function($query) use ($request) {
+                    $query->orWhereHas('percapita', function($query) use ($request) {
+                        PerCapita::buildIndexQuery($request, $query);
+                    });
                 });
-            });
-        });
-    }
+    } 
 }
