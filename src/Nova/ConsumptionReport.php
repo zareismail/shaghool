@@ -124,6 +124,9 @@ class ConsumptionReport extends Resource
                     $query->orWhereHas('percapita', function($query) use ($request) {
                         PerCapita::buildIndexQuery($request, $query);
                     });
+                })
+                ->with('percapita', function($query) use ($request) {
+                        PerCapita::buildIndexQuery($request, $query);
                 });
     } 
 }
