@@ -120,31 +120,24 @@ class PerCapita extends Resource
 
             HasMany::make(__('Consumption Reports'), 'reports', ConsumptionReport::class),
     	];
-    }
+    } 
 
     /**
-     * Build an "index" query for the given resource.
+     * Authenticate the query for the given request.
      *
      * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
      * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  string|null  $search
-     * @param  array  $filters
-     * @param  array  $orderings
-     * @param  string  $withTrashed
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public static function buildIndexQuery(NovaRequest $request, $query, $search = null,
-                                      array $filters = [], array $orderings = [],
-                                      $withTrashed = TrashedStatus::DEFAULT)
-    {  
-        $queryCallback = function($query) use ($request) {
-            $query->orWhereHasMorph('measurable', Helper::morphs(), function($query, $type) use ($request) { 
-                forward_static_call([Nova::resourceForModel($type), 'buildIndexQuery'], $request, $query);
+    public static function authenticateQuery(NovaRequest $request, $query)
+    {
+        return $query->where(function($query) use ($request) {
+            $query->authenticate()->orWhereHasMorph('measurable', Helper::morphs(), function($query, $type) { 
+                forward_static_call(
+                    [Nova::resourceForModel($type), 'buildIndexQuery'], app(NovaRequest::class), $query
+                );
             });
-        };
-
-        return parent::buildIndexQuery($request, $query, $search, $filters, $orderings, $withTrashed)
-                ->when(static::shouldAuthenticate($request, $query), $queryCallback);
+        });
     }
 
     /**
