@@ -13,6 +13,8 @@ class ShaghoolPerCapita extends AuthorizableModel
      */
     protected static function boot()
     { 
+    	parent::boot();
+    	
         static::deleting(function($model) {
             $method = $model->isForceDeleting() ? 'forceDelete' : 'delete';
 
