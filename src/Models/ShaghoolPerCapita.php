@@ -5,7 +5,25 @@ namespace Zareismail\Shaghool\Models;
 use Zareismail\NovaContracts\Models\AuthorizableModel; 
 
 class ShaghoolPerCapita extends AuthorizableModel 
-{    
+{     
+    /**
+     * Bootstrap the model and its traits.
+     *
+     * @return void
+     */
+    protected static function boot()
+    { 
+        static::deleting(function($model) {
+            $method = $model->isForceDeleting() ? 'forceDelete' : 'delete';
+
+             $model->reports()->{$method}();
+        }); 
+
+        static::restored(function($model) {
+            $model->reports()->onlyTrashed()->restore();
+        }); 
+    }
+
 	/**
 	 * Query the related ShaghoolResource.
 	 * 
