@@ -2,10 +2,13 @@
 
 namespace Zareismail\Shaghool\Models;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Zareismail\NovaContracts\Models\AuthorizableModel; 
 
 class ShaghoolReport extends AuthorizableModel 
 {   
+    use SoftDeletes;
+    
     /**
      * The attributes that should be cast.
      *

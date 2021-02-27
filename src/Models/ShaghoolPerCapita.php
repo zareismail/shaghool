@@ -2,10 +2,13 @@
 
 namespace Zareismail\Shaghool\Models;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Zareismail\NovaContracts\Models\AuthorizableModel; 
 
 class ShaghoolPerCapita extends AuthorizableModel 
-{     
+{   
+	use SoftDeletes;
+	  
     /**
      * Bootstrap the model and its traits.
      *
@@ -14,7 +17,7 @@ class ShaghoolPerCapita extends AuthorizableModel
     protected static function boot()
     { 
     	parent::boot();
-    	
+
         static::deleting(function($model) {
             $method = $model->isForceDeleting() ? 'forceDelete' : 'delete';
 
